@@ -1,0 +1,10 @@
+galaxy_info:
+  author: Aleksey Uchakin a.k.a. Night_Snake
+  description: Role for install the awesome software
+  company: Nixman.info
+  min_ansible_version: 2.6.5
+  github_branch:
+  - name: Ubuntu
+    versions:
+    - xenial
+    - bionic

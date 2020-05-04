@@ -1,0 +1,77 @@
+### Install additional apt repos and keys
+- name: Install repos from URLs
+  apt_repository:
+    repo: "{{ item.repo }}"
+    filename: "{{ item.filename }}"
+    state: present
+    update_cache: no
+  with_items:
+    - "{{ awesome_repo_list }}"
+  tags: awesome_repo
+
+- name: Install repos from .deb
+  apt:
+    deb: "{{ item.deb }}"
+    state: present
+  with_items:
+    - "{{ awesome_repo_deb_list }}"
+  tags: awesome_repo
+
+- name: Install PPA repos
+  apt_repository:
+    repo: "{{ item.repo }}"
+    codename: "{{ item.codename }}"
+    update_cache: no
+  with_items:
+    - "{{ awesome_ppa_list }}"
+  tags: awesome_repo
+
+- name: Install repo keys
+  apt_key:
+    url: "{{ item.url }}"
+    state: present
+  with_items:
+    - "{{ awesome_apt_key_list }}"
+  tags: awesome_repo
+
+- name: update apt cache
+  apt:
+    update_cache: yes
+  changed_when: False
+  check_mode: no
+  tags: awesome_repo
+
+### Install packages by apt
+- name: "Package install: base package"
+  apt:
+    pkg: "{{ awesome_package_list_base }}"
+  tags: awesome_pkg_install
+
+- name: "Package install: system tools"
+  apt:
+    pkg: "{{ awesome_package_list_system }}"
+  tags: awesome_pkg_install
+
+- name: "Package install: desktop tools"
+  apt:
+    pkg: "{{ awesome_package_list_desktop }}"
+  tags: awesome_pkg_install
+
+- name: "Package install: network tools"
+  apt:
+    pkg: "{{ awesome_package_list_network }}"
+  tags: awesome_pkg_install
+
+- name: "Package install: multimedia tools"
+  apt:
+    pkg: "{{ awesome_package_list_multimedia }}"
+  tags: awesome_pkg_install
+
+### Install packages by pip only for local user (some problems with setuptools, when pip running from root)
+- name: "Install pip packages"
+  become: false
+  pip:
+    name: "{{ item }}"
+  with_items:
+    - "{{ awesome_pip_list }}"
+  tags: awesome_pkg_install

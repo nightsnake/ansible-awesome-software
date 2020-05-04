@@ -1,0 +1,170 @@
+awesome_ppa_list:
+#Caffeine screensaver suppressor
+ - repo: ppa:caffeine-developers/ppa
+   codename: bionic
+#Deluge - torrent client
+ - repo: ppa:deluge-team/ppa
+   codename: bionic
+#Indicator for Unity like in Gnome2
+ - repo: ppa:diesch/testing
+   codename: bionic
+#gstreamer1.0
+ - repo: ppa:enlightenment-git/ppa
+   codename: xenial
+#Fingerprint tools
+ - repo: ppa:fingerprint/fingerprint-gui
+   codename: bionic
+ - repo: ppa:fingerprint/fprint
+   codename: bionic
+#Recent Notifications is an indicator applet (indicator-notifications) that collects recent messages sent with libnotify to a notification daemon, such as notify-osd.
+ - repo: ppa:jconti/recent-notifications
+   codename: bionic
+#Libre Office
+ - repo: ppa:libreoffice/ppa
+   codename: bionic
+#Oracle java repo with java13
+ - repo: ppa:linuxuprising/java
+   codename: bionic
+#L2TP plugin for network manager
+ - repo: ppa:nm-l2tp/network-manager-l2tp
+   codename: xenial
+#GIMP
+ - repo: ppa:otto-kesselgulasch/gimp
+   codename: bionic
+#Mozilla daily PPA
+ - repo: ppa:ubuntu-mozilla-daily/ppa
+   codename: bionic
+#Sound Switcher Indicator
+ - repo: ppa:yktooo/ppa
+   codename: bionic
+
+awesome_repo_list:
+#OwnCLoud
+ - repo: "deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/Ubuntu_18.04/ /"
+   filename: owncloud
+#Virtualbox
+ - repo: "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian bionic contrib"
+   filename: virtualbox
+#OpenVPN
+ - repo: "deb [arch=amd64] http://build.openvpn.net/debian/openvpn/stable bionic main"
+   filename: openvpn
+
+awesome_apt_key_list:
+#Virtualbox
+ - url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+#OwnCloud client
+ - url: https://download.opensuse.org/repositories/isv:ownCloud:desktop/Ubuntu_18.04/Release.key
+#OpenVPN
+ - url: https://swupdate.openvpn.net/repos/repo-public.gpg
+
+awesome_repo_deb_list:
+#Google Chrome
+ - deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+#SkypeForLinux
+ - deb: https://go.skype.com/skypeforlinux-64.deb
+#TeamViewer
+ - deb: https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
+#Zoom
+ - deb: https://zoom.us/client/latest/zoom_amd64.deb
+
+awesome_package_list_base:
+  - htop
+  - nano
+  - tcpdump
+  - traceroute
+  - telnet
+  - curl
+  - sudo
+  - git
+  - net-tools
+  - unzip
+  - mtr-tiny
+  - wget
+  - openssh-server
+  - whois
+
+awesome_package_list_system:
+ - bluez-hcidump          #bluetooth manager
+ - librsync-dev           #
+ - ca-certificates-java
+ - python                #
+ - python-pip            #
+ - python-dev            #
+ - virtualbox-6.0        #Virtualization
+ - mtp-tools             #
+ - gmtp                  #
+ - smartmontools         #HDD/SSD health monitoring
+ - vdpau-va-driver       #
+ - i965-va-driver        #
+ - devscripts            #
+ - smbclient             #
+ - snapd                 #
+ - xserver-xorg-input-synaptics-hwe-18.04 # Synaptics TouchPad driver for X.Org server
+
+awesome_package_list_desktop:
+ - ttf-bitstream-vera
+ - ttf-dejavu
+ - ttf-xfree86-nonfree
+ - ttf-mscorefonts-installer
+ - mate-screensaver
+ - xscreensaver-gl
+ - solaar
+# Uncomment, if you want to use compiz
+# - compizconfig-settings-manager
+# - compiz-plugins-main
+# - compiz-plugins-extra
+# - compiz-mate
+# - compiz-plugins
+ - copyq
+ - copyq-plugins
+ - flameshot
+
+awesome_package_list_multimedia:
+ - audacity
+ - darktable
+ - digikam
+ - dia
+ - faac
+ - ffmpeg
+ - flac
+ - gimp
+ - gimp-data
+ - gimp-plugin-registry
+ - gimp-data-extras
+ - gimp-lensfun
+ - gimp-dcraw
+ - gmic
+ - icc-profiles
+ - inkscape
+ - indicator-sound-switcher
+ - libjpeg-progs
+ - libquicktime2
+ - libtiff-opengl
+ - mpg321
+ - mpg123
+ - mpeg3-utils
+ - okular                          # PDF viewer
+ - ubuntu-restricted-extras
+ - vlc
+ - browser-plugin-vlc
+ - keepass2
+
+awesome_package_list_network:
+ - google-chrome-stable
+ - pidgin-encryption
+ - pidgin-lastfm
+ - pidgin-guifications
+ - pidgin-plugin-pack
+ - pidgin-sipe
+ - pidgin-themes
+ #Owncloud client for MATE desktop
+ - owncloud-client-caja
+ - owncloud-client
+ - openvpn
+ - ca-certificates
+ - skypeforlinux
+ - teamviewer
+
+awesome_pip_list:
+  - ansible
+  - psutil
