@@ -1,4 +1,4 @@
-## Ansible repo install awesome software pack
+## Ansible role for install awesome software pack
 
 All the defaults vars optimized for Mate 19.3 (based on Ubuntu 18.04). Please be careful
 This role created mostly for Lenovo Thinkpad laptop. Please see the repo and package lists for details.
