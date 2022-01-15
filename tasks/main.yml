@@ -1,4 +1,12 @@
 ### Install additional apt repos and keys
+- name: Install repos from .deb
+  apt:
+    deb: "{{ item.deb }}"
+    state: present
+  with_items:
+    - "{{ awesome_repo_deb_list }}"
+  tags: awesome_repo
+
 - name: Install repos from URLs
   apt_repository:
     repo: "{{ item.repo }}"
@@ -7,14 +15,6 @@
     update_cache: no
   with_items:
     - "{{ awesome_repo_list }}"
-  tags: awesome_repo
-
-- name: Install repos from .deb
-  apt:
-    deb: "{{ item.deb }}"
-    state: present
-  with_items:
-    - "{{ awesome_repo_deb_list }}"
   tags: awesome_repo
 
 - name: Install PPA repos
