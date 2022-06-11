@@ -1,197 +1,22 @@
-awesome_dist_name: "{{ ansible_distribution_release }}"
-awesome_ppa_list:
-#Caffeine screensaver suppressor
- - repo: ppa:caffeine-developers/ppa
-   codename: "{{ awesome_dist_name }}"
-#Deluge - torrent client
- - repo: ppa:deluge-team/ppa
-   codename: "{{ awesome_dist_name }}"
-#Indicator for Unity like in Gnome2
- - repo: ppa:diesch/testing
-   codename: "{{ awesome_dist_name }}"
-#gstreamer1.0
-# - repo: ppa:enlightenment-git/ppa
-#   codename: xenial
-#Fingerprint tools
- - repo: ppa:fingerprint/fingerprint-gui
-   codename: "{{ awesome_dist_name }}"
- - repo: ppa:fingerprint/fprint
-   codename: "{{ awesome_dist_name }}"
-#Recent Notifications is an indicator applet (indicator-notifications) that collects recent messages sent with libnotify to a notification daemon, such as notify-osd.
- - repo: ppa:jconti/recent-notifications
-   codename: "{{ awesome_dist_name }}"
-#Libre Office
- - repo: ppa:libreoffice/ppa
-   codename: "{{ awesome_dist_name }}"
-#Oracle java repo with java13
- - repo: ppa:linuxuprising/java
-   codename: "{{ awesome_dist_name }}"
-#L2TP plugin for network manager
-# - repo: ppa:nm-l2tp/network-manager-l2tp
-#   codename: xenial
-#GIMP
- - repo: ppa:otto-kesselgulasch/gimp
-   codename: "{{ awesome_dist_name }}"
-#Mozilla daily PPA
- - repo: ppa:ubuntu-mozilla-daily/ppa
-   codename: "{{ awesome_dist_name }}"
-#Sound Switcher Indicator
- - repo: ppa:yktooo/ppa
-   codename: "{{ awesome_dist_name }}"
 
-awesome_repo_list:
-#OwnCLoud
-#@TODO: choose version of OwnCLoud repo
-#http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/Ubuntu_20.04/
-#http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/Linux_Mint_19/
- - repo: "deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/Ubuntu_18.04/ /"
-   filename: owncloud
-#Virtualbox
- - repo: "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian {{ awesome_dist_name }} contrib"
-   filename: virtualbox
-#OpenVPN
- - repo: "deb [arch=amd64] http://build.openvpn.net/debian/openvpn/stable {{ awesome_dist_name }} main"
-   filename: openvpn
-#spotify
- - repo: "deb http://repository.spotify.com stable non-free"
-   filename: spotify
-
-awesome_apt_key_list:
-#Virtualbox
- - url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
-#OwnCloud client
- - url: https://download.opensuse.org/repositories/isv:ownCloud:desktop/Ubuntu_18.04/Release.key
-#OpenVPN
- - url: https://swupdate.openvpn.net/repos/repo-public.gpg
-#spotify
- - url: https://download.spotify.com/debian/pubkey.gpg
- - url: https://download.spotify.com/debian/pubkey_0D811D58.gpg
-
-awesome_repo_deb_list:
-#Google Chrome
- - deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-#SkypeForLinux
- - deb: https://go.skype.com/skypeforlinux-64.deb
-#TeamViewer
- - deb: https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
-#Zoom
- - deb: https://zoom.us/client/latest/zoom_amd64.deb
-
-awesome_package_list_base:
-  - htop
-  - nano
-  - tcpdump
-  - traceroute
-  - telnet
-  - curl
-  - sudo
-  - git
-  - net-tools
-  - unzip
-  - mtr-tiny
-  - wget
-  - openssh-server
-  - whois
-
-awesome_package_list_system:
- - bluez-hcidump         #bluetooth manager
- - librsync-dev          #
-#Oracle java13 JRE shoud be installed manually
-# - oracle-java13-installer
-# - oracle-java13-set-default
- - ca-certificates-java
- - htop                  #tool, better then top
- - python3               #
- - python3-pip           #
- - python3-dev           #
- - virtualbox-6.1        #Virtualization
- - mtp-tools             #
- - gmtp                  #
- - smartmontools         #HDD/SSD health monitoring
- - i965-va-driver        #
- - devscripts            #
- - smbclient             #
+default_awesome_ppa_list: []
+default_awesome_repo_list: []
+default_awesome_apt_key_list: []
+default_awesome_repo_deb_list: []
+default_awesome_package_list_base: []
+default_awesome_package_list_system:
+ - python3                #
+ - python3-pip            #
  - nano                  #easy-to-use editor
  - sudo                  #be like root!
  - git                   #for using things from GitHub
  - unzip                 #for unzipping zips
- - xserver-xorg-input-synaptics # Synaptics TouchPad driver for X.Org server
- - lm-sensors
  - tmux
- - nfs-common
- - nvme-cli
-
-awesome_package_list_desktop:
- - ttf-bitstream-vera
- - ttf-dejavu
- - ttf-xfree86-nonfree
- - ttf-mscorefonts-installer
-# Uncomment, if you want to use compiz
-# - compizconfig-settings-manager
-# - compiz-plugins-main
-# - compiz-plugins-extra
-# - compiz-mate
-# - compiz-plugins
- - copyq
- - copyq-plugins
- - flameshot
- - keepass2
-
-awesome_package_list_multimedia:
-#Multimedia
- - audacity
- - darktable
-# - deadbeef
- - digikam
- - dia
- - faac
- - ffmpeg
- - flac
- - gimp
- - gimp-data
- - gimp-plugin-registry
- - gimp-data-extras
- - gimp-lensfun
- - gimp-dcraw
- - gmic
- - icc-profiles
- - inkscape
- - indicator-sound-switcher
- - libjpeg-progs
- - libquicktime2
- - libtiff-opengl
- - mpg321
- - mpg123
- - mpeg3-utils
- - okular                          # PDF viewer
- - spotify-client
- - ubuntu-restricted-extras
- - vlc
- - vlc-plugin-access-extra
- - vlc-plugin-base
- - vlc-plugin-bittorrent
- - vlc-plugin-jack
- - vlc-plugin-notify
- - vlc-plugin-samba
- - vlc-plugin-svg
- - vlc-plugin-video-output
- - vlc-plugin-video-splitter
-
-awesome_package_list_network:
- - google-chrome-stable
- - pidgin-encryption
- - pidgin-lastfm
- - pidgin-guifications
- - pidgin-plugin-pack
- - pidgin-sipe
- - pidgin-themes
- #Owncloud client for MATE desktop
- - owncloud-client
- - owncloud-client-l10n
- - owncloud-client-overlays-icons
- - openvpn
- - net-tools
  - ca-certificates
+ - htop
+
+default_awesome_package_list_network:
+ - net-tools
  - wget
  - openssh-server
  - curl
@@ -199,12 +24,49 @@ awesome_package_list_network:
  - mtr-tiny
  - tcpdump
  - whois
- - skypeforlinux
- - teamviewer
  - telnet
- - curl
- - nmap
 
-awesome_pip_list:
-  - ansible
+default_awesome_package_list_desktop: []
+
+default_awesome_pip_list:
+  - setuptools
   - psutil
+
+default_awesome_package_list_multimedia: []
+
+custom_awesome_ppa_list: []
+#Caffeine screensaver suppressor
+# - repo: ppa:caffeine-developers/ppa
+#   codename: bionic
+#Deluge - torrent client
+# - repo: ppa:deluge-team/ppa
+#   codename: bionic
+#Indicator for Unity like in Gnome2
+# - repo: ppa:diesch/testing
+#   codename: "{{ awesome_dist_name }}"
+#gstreamer1.0
+# - repo: ppa:enlightenment-git/ppa
+#   codename: xenial
+#Fingerprint tools
+# - repo: ppa:fingerprint/fingerprint-gui
+#   codename: bionic
+# - repo: ppa:fingerprint/fprint
+   #codename: bionic
+#Recent Notifications is an indicator applet (indicator-notifications) that collects recent messages sent with libnotify to a notification daemon, such as notify-osd.
+# - repo: ppa:jconti/recent-notifications
+#   codename: bionic
+
+#GIMP
+# Broken for focal
+# - repo: ppa:otto-kesselgulasch/gimp
+#   codename: "{{ awesome_dist_name }}"
+
+custom_awesome_repo_list: []
+custom_awesome_apt_key_list: []
+custom_awesome_repo_deb_list: []
+custom_awesome_package_list_base: []
+custom_awesome_package_list_system: []
+custom_awesome_package_list_desktop: []
+custom_awesome_package_list_multimedia: []
+custom_awesome_package_list_network: []
+custom_awesome_pip_list: []
