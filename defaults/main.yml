@@ -6,10 +6,8 @@ default_awesome_repo_deb_list: []
 default_awesome_package_list_base: []
 default_awesome_package_list_system:
  - python3                #
- - python3-pip            #
  - nano                  #easy-to-use editor
  - sudo                  #be like root!
- - git                   #for using things from GitHub
  - unzip                 #for unzipping zips
  - tmux
  - ca-certificates
@@ -28,9 +26,7 @@ default_awesome_package_list_network:
 
 default_awesome_package_list_desktop: []
 
-default_awesome_pip_list:
-  - setuptools
-  - psutil
+default_awesome_pip_list: []
 
 default_awesome_package_list_multimedia: []
 
@@ -70,3 +66,5 @@ custom_awesome_package_list_desktop: []
 custom_awesome_package_list_multimedia: []
 custom_awesome_package_list_network: []
 custom_awesome_pip_list: []
+
+apt_upgrade: false

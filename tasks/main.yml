@@ -19,7 +19,7 @@
   with_items:
     - "{{ default_awesome_repo_deb_list | default(omit) }}"
     - "{{ custom_awesome_repo_deb_list | default(omit) }}"
-  ignore_errors: yes
+  ignore_errors: True
   tags: awesome_repo
 
 - name: Install PPA repos
@@ -42,10 +42,28 @@
   tags: awesome_repo
 
 - name: update apt cache
-  apt:
+  ansible.builtin.apt:
     update_cache: yes
+    cache_valid_time: 3600
   changed_when: False
   check_mode: no
+  tags: awesome_repo
+
+- name: upgrade all packages
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  check_mode: no
+  when:
+   apt_upgrade
+  tags: awesome_repo
+
+- name: remove unnesessary packages
+  ansible.builtin.apt:
+    autoremove: True
+  check_mode: no
+  when:
+   apt_upgrade
   tags: awesome_repo
 
 ### Install packages by apt
