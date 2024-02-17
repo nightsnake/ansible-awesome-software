@@ -23,6 +23,7 @@ default_awesome_package_list_network:
  - tcpdump
  - whois
  - telnet
+ - dnsutils
 
 default_awesome_package_list_desktop: []
 
