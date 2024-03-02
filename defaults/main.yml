@@ -1,20 +1,21 @@
-
 default_awesome_ppa_list: []
 default_awesome_repo_list: []
 default_awesome_apt_key_list: []
 default_awesome_repo_deb_list: []
-default_awesome_package_list_base: []
 default_awesome_package_list_system:
  - python3                #
  - nano                  #easy-to-use editor
  - sudo                  #be like root!
  - unzip                 #for unzipping zips
  - tmux
- - ca-certificates
+ - apt-transport-https
+ - software-properties-common
  - htop
 
+default_awesome_package_list_base: []
 default_awesome_package_list_network:
  - net-tools
+ - ca-certificates
  - wget
  - openssh-server
  - curl
@@ -26,9 +27,7 @@ default_awesome_package_list_network:
  - dnsutils
 
 default_awesome_package_list_desktop: []
-
 default_awesome_pip_list: []
-
 default_awesome_package_list_multimedia: []
 
 custom_awesome_ppa_list: []

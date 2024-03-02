@@ -53,6 +53,7 @@
   ansible.builtin.apt:
     name: "*"
     state: latest
+    install_recommends: false    
   check_mode: no
   when:
    apt_upgrade
@@ -70,6 +71,7 @@
 - name: "Package install: base package"
   apt:
     pkg: "{{ item }}"
+    install_recommends: false
   with_items:
     - "{{ default_awesome_package_list_base }}"
     - "{{ custom_awesome_package_list_base }}"
@@ -78,6 +80,7 @@
 - name: "Package install: system tools"
   apt:
     pkg: "{{ item }}"
+    install_recommends: false
   with_items:
     - "{{ default_awesome_package_list_system }}"
     - "{{ custom_awesome_package_list_system }}"
@@ -86,6 +89,7 @@
 - name: "Package install: desktop tools"
   apt:
     pkg: "{{ item }}"
+    install_recommends: false
   with_items:
     - "{{ default_awesome_package_list_desktop }}"
     - "{{ custom_awesome_package_list_desktop }}"
@@ -94,6 +98,7 @@
 - name: "Package install: network tools"
   apt:
     pkg: "{{ item }}"
+    install_recommends: false
   with_items:
     - "{{ default_awesome_package_list_network }}"
     - "{{ custom_awesome_package_list_network }}"
@@ -102,6 +107,7 @@
 - name: "Package install: multimedia tools"
   apt:
     pkg: "{{ item }}"
+    install_recommends: false
   with_items:
     - "{{ default_awesome_package_list_multimedia }}"
     - "{{ custom_awesome_package_list_multimedia }}"
