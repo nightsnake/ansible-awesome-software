@@ -4,7 +4,7 @@
     repo: "{{ item.repo }}"
     filename: "{{ item.filename }}"
     state: present
-    update_cache: no
+    update_cache: false
   with_items:
     - "{{ default_awesome_repo_list }}"
     - "{{ custom_awesome_repo_list }}"
@@ -15,27 +15,28 @@
   apt:
     deb: "{{ item.deb }}"
     state: present
-    install_recommends: no
+    install_recommends: false
   with_items:
     - "{{ default_awesome_repo_deb_list | default(omit) }}"
     - "{{ custom_awesome_repo_deb_list | default(omit) }}"
-  ignore_errors: True
+  ignore_errors: true
   tags: awesome_repo
 
 - name: Install PPA repos
   apt_repository:
     repo: "{{ item.repo }}"
     codename: "{{ item.codename }}"
-    update_cache: no
+    update_cache: false
   with_items:
     - "{{ default_awesome_ppa_list }}"
     - "{{ custom_awesome_ppa_list }}"
   tags: awesome_repo
 
 - name: Install repo keys
-  apt_key:
+  ansible.builtin.get_url:
     url: "{{ item.url }}"
-    state: present
+#    state: present
+    dest: "{{ item.keyring }}"
   with_items:
     - "{{ default_awesome_apt_key_list }}"
     - "{{ custom_awesome_apt_key_list }}"
@@ -43,10 +44,10 @@
 
 - name: update apt cache
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
     cache_valid_time: 3600
-  changed_when: False
-  check_mode: no
+  changed_when: false
+  check_mode: false
   tags: awesome_repo
 
 - name: upgrade all packages
@@ -54,15 +55,15 @@
     name: "*"
     state: latest
     install_recommends: false    
-  check_mode: no
+  check_mode: false
   when:
    apt_upgrade
   tags: awesome_repo
 
 - name: remove unnesessary packages
   ansible.builtin.apt:
-    autoremove: True
-  check_mode: no
+    autoremove: true
+  check_mode: false
   when:
    apt_upgrade
   tags: awesome_repo
