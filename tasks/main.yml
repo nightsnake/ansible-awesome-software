@@ -112,13 +112,3 @@
     - "{{ default_awesome_package_list_multimedia }}"
     - "{{ custom_awesome_package_list_multimedia }}"
   tags: awesome_pkg_install
-
-### Install packages by pip only for local user (some problems with setuptools, when pip running from root)
-- name: "Install pip packages"
-  become: false
-  pip:
-    name: "{{ item }}"
-  with_items:
-    - "{{ default_awesome_pip_list }}"
-    - "{{ custom_awesome_pip_list }}"
-  tags: awesome_pkg_install
