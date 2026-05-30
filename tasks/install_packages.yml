@@ -71,4 +71,3 @@
     install_recommends: "{{ item.install_recommends | default(true) }}"
   loop: "{{ awesome_packages_with_options | default([]) }}"
   when: awesome_packages_with_options is defined
-  

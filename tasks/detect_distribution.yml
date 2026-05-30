@@ -78,4 +78,3 @@
       - "Base distribution: {{ distro_base }}"
   when: awesome_debug | bool
   tags: always
-  

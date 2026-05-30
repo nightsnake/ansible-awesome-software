@@ -1,12 +1,46 @@
+---
+# meta/main.yml
 galaxy_info:
-  author: Aleksey Uchakin a.k.a. Night_Snake
-  description: Role for install the awesome software
-  company: Nixman.info
-  role_name: "awesome_software"
-  min_ansible_version: 2.6.5
-  license: MIT
+  author: "nightsnake"
+  name: "ansible-awesome-software"
+  description: "Ansible role for installing repositories and software packages on Debian/Ubuntu/Linux Mint systems with deb822 support"
+  license: "MIT"
+  min_ansible_version: "2.25"
+  
   platforms:
-  - name: Ubuntu
-    versions:
-    - focal
-    - jammy
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+        - wily
+    - name: LinuxMint
+      versions:
+        - virginia
+        - wilma
+        - zena
+  
+  galaxy_tags:
+    - system
+    - packaging
+    - apt
+    - repository
+    - debian
+    - ubuntu
+    - linuxmint
+    - software
+    - packages
+    - desktop
+    - development
+    - multimedia
+    - network
+    - deb822
+    - workstation
+    - automation
+    - configuration
+    - linux
+
+dependencies: []

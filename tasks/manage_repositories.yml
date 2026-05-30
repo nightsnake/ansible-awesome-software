@@ -1,6 +1,21 @@
 ---
 # tasks/manage_repositories.yml
 
+- name: Install python3-apt
+  ansible.builtin.package:
+    name: python3-apt
+    state: present
+  register: install_apt_result
+  failed_when: install_apt_result.failed
+
+- name: Install python3-debian for deb822 support
+  ansible.builtin.package:
+    name: python3-debian
+    state: present
+  when: custom_awesome_repo_list | selectattr('name', 'defined') | list | length > 0
+  register: install_debian_result
+  failed_when: install_debian_result.failed
+  
 - name: Remove all existing repositories if flag is set
   when: awesome_remove_all_repos | bool
   block:
@@ -10,26 +25,43 @@
         dest: "/etc/apt/sources.list.backup.{{ ansible_date_time.epoch }}"
         remote_src: true
         backup: true
+        owner: root
+        group: root
+        mode: '0644'
       when: ansible_facts['os_family'] == "Debian"
-      ignore_errors: true
+      register: backup_result
+      failed_when: 
+        - backup_result.failed
+        - "'No such file or directory' not in backup_result.msg | default('')"
 
-    - name: Remove all .list and .sources files
-      ansible.builtin.shell: rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources
-      args:
-        removes: /etc/apt/sources.list.d/
-      ignore_errors: true
+    - name: Find all repository files in sources.list.d
+      ansible.builtin.find:
+        paths: /etc/apt/sources.list.d/
+        patterns: "*.list,*.sources"
+        file_type: file
+      register: all_repo_files
+      failed_when: false
+
+    - name: Remove all repository files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ all_repo_files.files }}"
+      when: all_repo_files.files | length > 0
+      register: remove_files_result
+      failed_when: remove_files_result.failed
 
     - name: Clear main sources.list
       ansible.builtin.copy:
         content: "# Managed by Ansible - original backup saved\n"
         dest: /etc/apt/sources.list
         force: true
+        owner: root
+        group: root
+        mode: '0644'
       when: ansible_facts['os_family'] == "Debian"
-
-- name: Install python3-apt
-  ansible.builtin.package:
-    name: python3-apt
-    state: present
+      register: clear_result
+      failed_when: clear_result.failed
 
 - name: Debug - show default repos before addition
   ansible.builtin.debug:
@@ -37,6 +69,7 @@
   when: 
     - awesome_debug | bool
     - _default_awesome_repo_list is defined
+  failed_when: false
 
 - name: Debug - show custom repos before addition
   ansible.builtin.debug:
@@ -44,6 +77,7 @@
   when: 
     - awesome_debug | bool
     - custom_awesome_repo_list is defined
+  failed_when: false
 
 # ============================================
 # Установка репозиториев по умолчанию
@@ -58,6 +92,7 @@
   ansible.builtin.debug:
     msg: "Default repos will be written to: {{ _default_repo_filename }}.list"
   when: awesome_debug | bool and _default_awesome_repo_list | length > 0
+  failed_when: false
 
 - name: Write default repositories to single .list file
   ansible.builtin.apt_repository:
@@ -69,8 +104,12 @@
   loop: "{{ _default_awesome_repo_list }}"
   when: 
     - _default_awesome_repo_list | length > 0
+  register: default_repo_result
+  failed_when: 
+    - default_repo_result.failed
+    - "'already exists' not in default_repo_result.msg | default('')"
+    - "'already added' not in default_repo_result.msg | default('')"
   notify: update apt cache for repos
-  ignore_errors: true
 
 # ============================================
 # Обработка пользовательских репозиториев
@@ -89,8 +128,13 @@
     codename: "{{ ansible_distribution_release if ansible_distribution == 'LinuxMint' else omit }}"
   loop: "{{ custom_awesome_repo_list | selectattr('repo', 'defined') | list }}"
   when: custom_awesome_repo_list | length > 0
+  register: legacy_repo_result
+  failed_when: 
+    - legacy_repo_result.failed
+    - "'already exists' not in legacy_repo_result.msg | default('')"
+    - "'already added' not in legacy_repo_result.msg | default('')"
+    - "'ppa' not in legacy_repo_result.msg | default('') or 'already exists' not in legacy_repo_result.msg | default('')"
   notify: update apt cache for repos
-  ignore_errors: true
 
 # Обработка deb822 репозиториев (формат .sources)
 # Репозиторий описывается словарём с полем 'name'
@@ -108,10 +152,16 @@
     state: present
   loop: "{{ custom_awesome_repo_list | selectattr('name', 'defined') | list }}"
   when: custom_awesome_repo_list | length > 0
+  register: deb822_repo_result
+  failed_when: 
+    - deb822_repo_result.failed
+    - "'already exists' not in deb822_repo_result.msg | default('')"
+    - "'already added' not in deb822_repo_result.msg | default('')"
   notify: update apt cache for repos
-  ignore_errors: true
 
 - name: Update apt cache after repository changes
   ansible.builtin.apt:
     update_cache: true
+  register: update_cache_result
+  failed_when: update_cache_result.failed
   changed_when: false
