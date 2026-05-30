@@ -8,12 +8,12 @@
     _final_package_list_network: "{{ default_awesome_package_list_network + custom_awesome_package_list_network }}"
 
 - name: Update all packages if apt_upgrade is set
-  when: apt_upgrade | bool or apt_upgrade in ['dist', 'full', 'safe', 'yes', 'true']
+  when: apt_upgrade | bool or apt_upgrade in ['dist', 'full', 'safe', 'true', 'yes']
   block:
     - name: Perform apt upgrade
       ansible.builtin.apt:
         upgrade: "{{ apt_upgrade if apt_upgrade in ['dist', 'full', 'safe'] else 'full' }}"
-        update_cache: yes
+        update_cache: true
         cache_valid_time: "{{ apt_cache_valid_time }}"
         autoremove: "{{ apt_autoremove | bool }}"
       register: upgrade_result
@@ -26,7 +26,7 @@
   ansible.builtin.apt:
     name: "{{ _final_package_list_base }}"
     state: present
-    update_cache: yes
+    update_cache: true
     cache_valid_time: "{{ apt_cache_valid_time }}"
   when: _final_package_list_base | length > 0
 
@@ -34,7 +34,7 @@
   ansible.builtin.apt:
     name: "{{ _final_package_list_system }}"
     state: present
-    update_cache: yes
+    update_cache: true
     cache_valid_time: "{{ apt_cache_valid_time }}"
   when: _final_package_list_system | length > 0
 
@@ -42,7 +42,7 @@
   ansible.builtin.apt:
     name: "{{ _final_package_list_desktop }}"
     state: present
-    update_cache: yes
+    update_cache: true
     cache_valid_time: "{{ apt_cache_valid_time }}"
   when: _final_package_list_desktop | length > 0
 
@@ -50,7 +50,7 @@
   ansible.builtin.apt:
     name: "{{ _final_package_list_multimedia }}"
     state: present
-    update_cache: yes
+    update_cache: true
     cache_valid_time: "{{ apt_cache_valid_time }}"
   when: _final_package_list_multimedia | length > 0
 
@@ -58,7 +58,7 @@
   ansible.builtin.apt:
     name: "{{ _final_package_list_network }}"
     state: present
-    update_cache: yes
+    update_cache: true
     cache_valid_time: "{{ apt_cache_valid_time }}"
   when: _final_package_list_network | length > 0
 
@@ -71,3 +71,4 @@
     install_recommends: "{{ item.install_recommends | default(true) }}"
   loop: "{{ awesome_packages_with_options | default([]) }}"
   when: awesome_packages_with_options is defined
+  

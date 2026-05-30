@@ -1,5 +1,6 @@
 ---
 # tasks/main.yml
+
 - name: Detect distribution version and details
   ansible.builtin.import_tasks: detect_distribution.yml
   tags: always
@@ -7,14 +8,47 @@
 - name: Include repository templates
   ansible.builtin.include_vars:
     file: repo_templates.yml
-    name: _repo_templates
 
-- name: Set default repo list based on OS facts
+- name: Set default repos for Debian
   ansible.builtin.set_fact:
-    _default_awesome_repo_list: "{{ _repo_templates[ansible_distribution][ansible_distribution_version] | default(_repo_templates[ansible_distribution][ansible_distribution_major_version] | default([])) }}"
+    _default_awesome_repo_list: "{{ repo_templates.Debian[ansible_distribution_major_version] }}"
   when: 
-    - ansible_distribution in _repo_templates
-    - ansible_distribution_version in _repo_templates[ansible_distribution] or ansible_distribution_major_version in _repo_templates[ansible_distribution]
+    - ansible_distribution == 'Debian'
+    - ansible_distribution_major_version in repo_templates.Debian
+
+- name: Set default repos for Ubuntu
+  ansible.builtin.set_fact:
+    _default_awesome_repo_list: "{{ repo_templates.Ubuntu[ansible_distribution_version] }}"
+  when: 
+    - ansible_distribution == 'Ubuntu'
+    - ansible_distribution_version in repo_templates.Ubuntu
+
+- name: Set default repos for Linux Mint
+  ansible.builtin.set_fact:
+    _default_awesome_repo_list: "{{ repo_templates.LinuxMint[ansible_distribution_version] }}"
+  when: 
+    - ansible_distribution == 'LinuxMint'
+    - ansible_distribution_version in repo_templates.LinuxMint
+
+- name: Ensure _default_awesome_repo_list is defined
+  ansible.builtin.set_fact:
+    _default_awesome_repo_list: []
+  when: _default_awesome_repo_list is not defined
+
+- name: Debug - show default repo list (only if debug enabled)
+  ansible.builtin.debug:
+    msg: 
+      - "Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - "Default repos count: {{ _default_awesome_repo_list | length }}"
+      - "Default repos: {{ _default_awesome_repo_list }}"
+  when: awesome_debug | bool
+
+- name: Debug - show custom repos (only if debug enabled)
+  ansible.builtin.debug:
+    msg:
+      - "Custom repos count: {{ custom_awesome_repo_list | default([]) | length }}"
+      - "Custom repos: {{ custom_awesome_repo_list | default([]) }}"
+  when: awesome_debug | bool
 
 - name: Manage repositories
   ansible.builtin.import_tasks: manage_repositories.yml
@@ -22,7 +56,7 @@
     - awesome_repo
     - repos
 
-- name: Install packages (optimized)
+- name: Install packages
   ansible.builtin.import_tasks: install_packages.yml
   tags:
     - awesome_pkg_install

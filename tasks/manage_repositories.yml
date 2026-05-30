@@ -1,111 +1,117 @@
 ---
+# tasks/manage_repositories.yml
+
 - name: Remove all existing repositories if flag is set
   when: awesome_remove_all_repos | bool
   block:
-    - name: Backup sources.list before removal
+    - name: Backup sources.list
       ansible.builtin.copy:
         src: /etc/apt/sources.list
-        dest: /etc/apt/sources.list.backup.{{ ansible_date_time.epoch }}
-        remote_src: yes
-        backup: yes
+        dest: "/etc/apt/sources.list.backup.{{ ansible_date_time.epoch }}"
+        remote_src: true
+        backup: true
       when: ansible_facts['os_family'] == "Debian"
+      ignore_errors: true
 
-    - name: Find all repository files
-      ansible.builtin.find:
-        paths:
-          - /etc/apt/sources.list.d/
-        patterns: "*.list,*.sources"
-        file_type: file
-      register: existing_repo_files
-
-    - name: Delete all repository files
-      ansible.builtin.file:
-        path: "{{ item.path }}"
-        state: absent
-      loop: "{{ existing_repo_files.files }}"
-      when: existing_repo_files.files | length > 0
+    - name: Remove all .list and .sources files
+      ansible.builtin.shell: rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources
+      args:
+        removes: /etc/apt/sources.list.d/
+      ignore_errors: true
 
     - name: Clear main sources.list
       ansible.builtin.copy:
         content: "# Managed by Ansible - original backup saved\n"
         dest: /etc/apt/sources.list
-        force: yes
+        force: true
       when: ansible_facts['os_family'] == "Debian"
 
-- name: Install python3-apt for repository management
+- name: Install python3-apt
   ansible.builtin.package:
     name: python3-apt
     state: present
 
-- name: Convert existing repositories to deb822 if requested
-  when: awesome_convert_to_deb822 | bool
-  block:
-    - name: Find all .list files for conversion
-      ansible.builtin.find:
-        paths:
-          - /etc/apt/sources.list.d/
-          - /etc/apt/
-        patterns: "*.list"
-        file_type: file
-      register: list_files
+- name: Debug - show default repos before addition
+  ansible.builtin.debug:
+    msg: "Default repositories to add: {{ _default_awesome_repo_list }}"
+  when: 
+    - awesome_debug | bool
+    - _default_awesome_repo_list is defined
 
-    - name: Convert .list files to .sources format using apt-get
-      ansible.builtin.command:
-        cmd: >
-          apt-get indextargets --format deb822
-          --list-file {{ item.path }}
-          > {{ item.path | replace('.list', '.sources') }}
-        creates: "{{ item.path | replace('.list', '.sources') }}"
-      loop: "{{ list_files.files }}"
-      when:
-        - item.path != '/etc/apt/sources.list'
-        - not awesome_remove_all_repos | bool
-      changed_when: true
+- name: Debug - show custom repos before addition
+  ansible.builtin.debug:
+    msg: "Custom repositories to add: {{ custom_awesome_repo_list }}"
+  when: 
+    - awesome_debug | bool
+    - custom_awesome_repo_list is defined
 
-    - name: Remove old .list files after conversion
-      ansible.builtin.file:
-        path: "{{ item.path }}"
-        state: absent
-      loop: "{{ list_files.files }}"
-      when:
-        - item.path != '/etc/apt/sources.list'
-        - not awesome_remove_all_repos | bool
-        - (item.path | replace('.list', '.sources')).stat.exists | default(false)
+# ============================================
+# Установка репозиториев по умолчанию
+# ============================================
 
-# Используем новый deb822_repository модуль для deb822 формата (Ansible 2.25+)
-# или apt_repository для совместимости
-- name: Add repositories using appropriate module
-  when: (awesome_repo_list + custom_awesome_repo_list) | length > 0
-  block:
-    - name: Add repositories with deb822 format (using new module)
-      ansible.builtin.deb822_repository:
-        name: "awesome_repo_{{ loop_index }}"
-        types: "{{ item.type | default('deb') }}"
-        uris: "{{ item.uris if item.uris is defined else (item | regex_replace('^\\w+\\s+(.*?)\\s+\\S+\\s+\\S+$', '\\1')) }}"
-        suites: "{{ item.suites if item.suites is defined else (item | regex_replace('^\\w+\\s+\\S+\\s+(\\S+)\\s+\\S+$', '\\1')) }}"
-        components: "{{ item.components if item.components is defined else (item | regex_replace('^\\w+\\s+\\S+\\s+\\S+\\s+(.*)$', '\\1') | split(' ')) }}"
-        signed_by: "{{ item.signed_by | default(omit) }}"
-        architectures: "{{ item.architectures | default(omit) }}"
-        state: present
-      loop: "{{ awesome_repo_list + custom_awesome_repo_list | select('mapping') | list }}"
-      loop_control:
-        index_var: loop_index
-      when: 
-        - awesome_use_deb822 | bool
-        - item is mapping
+- name: Set default repo filename based on distribution
+  ansible.builtin.set_fact:
+    _default_repo_filename: "{{ ansible_distribution | lower }}"
+  when: _default_awesome_repo_list | length > 0
 
-    - name: Add repositories (string format, may use apt_repository for compatibility)
-      ansible.builtin.apt_repository:
-        repo: "{{ item }}"
-        state: present
-        update_cache: no
-        codename: "{{ ansible_distribution_release if ansible_distribution == 'LinuxMint' else omit }}"
-      loop: "{{ awesome_repo_list + custom_awesome_repo_list | select('string') | list }}"
-      when:
-        - not (awesome_use_deb822 | bool) or item is string
-      notify: update apt cache for repos
+- name: Debug default repo filename
+  ansible.builtin.debug:
+    msg: "Default repos will be written to: {{ _default_repo_filename }}.list"
+  when: awesome_debug | bool and _default_awesome_repo_list | length > 0
+
+- name: Write default repositories to single .list file
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: false
+    filename: "{{ _default_repo_filename }}"
+    codename: "{{ ansible_distribution_release if ansible_distribution == 'LinuxMint' else omit }}"
+  loop: "{{ _default_awesome_repo_list }}"
+  when: 
+    - _default_awesome_repo_list | length > 0
+  notify: update apt cache for repos
+  ignore_errors: true
+
+# ============================================
+# Обработка пользовательских репозиториев
+# ============================================
+
+# Обработка legacy репозиториев (формат .list)
+# Репозиторий описывается словарём с полем 'repo'
+# Имя файла берётся из поля 'file'
+
+- name: Add legacy format repositories (.list files)
+  ansible.builtin.apt_repository:
+    repo: "{{ item.repo }}"
+    state: present
+    update_cache: false
+    filename: "{{ item.file }}"
+    codename: "{{ ansible_distribution_release if ansible_distribution == 'LinuxMint' else omit }}"
+  loop: "{{ custom_awesome_repo_list | selectattr('repo', 'defined') | list }}"
+  when: custom_awesome_repo_list | length > 0
+  notify: update apt cache for repos
+  ignore_errors: true
+
+# Обработка deb822 репозиториев (формат .sources)
+# Репозиторий описывается словарём с полем 'name'
+# Имя файла берётся из поля 'name'
+
+- name: Add deb822 format repositories (.sources files)
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    types: "{{ item.type | default('deb') }}"
+    uris: "{{ item.uris }}"
+    suites: "{{ item.suites }}"
+    components: "{{ item.components }}"
+    signed_by: "{{ item.signed_by | default(omit) }}"
+    architectures: "{{ item.architectures | default(omit) }}"
+    state: present
+  loop: "{{ custom_awesome_repo_list | selectattr('name', 'defined') | list }}"
+  when: custom_awesome_repo_list | length > 0
+  notify: update apt cache for repos
+  ignore_errors: true
 
 - name: Update apt cache after repository changes
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
   changed_when: false

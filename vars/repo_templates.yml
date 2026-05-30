@@ -1,6 +1,9 @@
 ---
+# vars/repo_templates.yml
 # Шаблоны для разных дистрибутивов и версий
-_repo_templates:
+
+# Убираем вложенность - делаем переменную верхнего уровня
+repo_templates:
   Ubuntu:
     "22.04":
       - "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse"
@@ -29,7 +32,6 @@ _repo_templates:
       - "deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware"
   
   LinuxMint:
-    # Linux Mint 22 и 22.3 (based on Ubuntu 24.04 Noble)
     "22":
       - "deb http://packages.linuxmint.com wilma main upstream import backport"
       - "deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse"
@@ -42,22 +44,10 @@ _repo_templates:
       - "deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse"
       - "deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse"
       - "deb http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse"
-    # Linux Mint 21.3 (based on Ubuntu 22.04 Jammy)
     "21.3":
       - "deb http://packages.linuxmint.com virginia main upstream import backport"
       - "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse"
       - "deb http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse"
       - "deb http://archive.ubuntu.com/ubuntu jammy-backports main restricted universe multiverse"
       - "deb http://security.ubuntu.com/ubuntu jammy-security main restricted universe multiverse"
-
-# Функция определения версии для Linux Mint и других ОС
-_default_awesome_repo_list: |
-  {%- if ansible_distribution == 'Ubuntu' -%}
-    {{ _repo_templates['Ubuntu'][ansible_distribution_version] | default(_repo_templates['Ubuntu']['24.04']) }}
-  {%- elif ansible_distribution == 'Debian' -%}
-    {{ _repo_templates['Debian'][ansible_distribution_major_version] | default(_repo_templates['Debian']['12']) }}
-  {%- elif ansible_distribution == 'LinuxMint' -%}
-    {{ _repo_templates['LinuxMint'][ansible_distribution_version] | default(_repo_templates['LinuxMint']['22']) }}
-  {%- else -%}
-    []
-  {%- endif -%}
+      

@@ -9,8 +9,6 @@ awesome_remove_all_repos: false
 # Конвертировать существующие репозитории в формат deb822
 awesome_convert_to_deb822: false
 
-# Использовать deb822 для новых репозиториев
-awesome_use_deb822: false
 
 # ============================================
 # Обновление системы
@@ -80,24 +78,56 @@ custom_awesome_package_list_network: []
 # Репозитории (примеры описания)
 # ============================================
 #
-# Пример 1: Обычный репозиторий
-#   - "deb http://archive.ubuntu.com/ubuntu jammy main restricted"
+# Список кастомных репозиториев пользователя
+# Репозитории ОБЯЗАТЕЛЬНО задаются через словарь.
 #
-# Пример 2: PPA репозиторий (будет сконвертирован в deb822 при необходимости)
-#   - "ppa:nginx/stable"
+# Два формата:
 #
-# Пример 3: Репозиторий с указанием архитектуры и ключа (для deb822)
-#   - "deb [arch=amd64 signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+# 1. LEGACY ФОРМАТ (создаётся файл .list)
+#    Используется для обычных deb-строк и PPA.
+#    Поля:
+#      - repo: строка с описанием репозитория (deb-строка или ppa:имя)
+#      - file: имя файла (без расширения, будет создан file.list)
 #
-# Пример 4: Репозиторий в формате deb822 (полное описание)
-#   - type: "deb"
-#     uris: "https://download.docker.com/linux/ubuntu"
-#     suites: "{{ ansible_distribution_release }}"
-#     components: ["stable"]
-#     signed_by: "/usr/share/keyrings/docker.gpg"
-#     architectures: ["amd64"]
+#    Примеры:
+#      - repo: "deb http://archive.ubuntu.com/ubuntu noble main restricted"
+#        file: "ubuntu_main"
+#      
+#      - repo: "ppa:nginx/stable"
+#        file: "nginx"
+#      
+#      - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable"
+#        file: "docker"
+#
+# 2. DEB822 ФОРМАТ (создаётся файл .sources)
+#    Используется для полного контроля над репозиторием в формате deb822.
+#    Поля:
+#      - name: имя файла (без расширения, будет создан name.sources)
+#      - type: тип репозитория (обычно 'deb')
+#      - uris: URI репозитория
+#      - suites: кодовое имя релиза (например, 'noble', 'trixie')
+#      - components: список компонентов (например, ['main', 'universe'])
+#      - signed_by: путь к ключу GPG (опционально)
+#      - architectures: список архитектур (опционально)
+#
+#    Пример:
+#      - name: "zabbix"
+#        type: "deb"
+#        uris: "https://repo.zabbix.com/zabbix/7.0/debian/"
+#        suites: "trixie"
+#        components: ["main"]
+#        architectures: ["amd64"]
+#        signed_by: "/etc/apt/keyrings/zabbix-repo.asc"
+#
 
 awesome_repo_list: "{{ _default_awesome_repo_list }}"
 
 # Список кастомных репозиториев пользователя
 custom_awesome_repo_list: []
+
+# ============================================
+# Отладка
+# ============================================
+
+# Включить подробный вывод отладки (true/false)
+awesome_debug: false
