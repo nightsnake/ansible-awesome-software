@@ -1,0 +1,97 @@
+---
+# tasks/detect_distribution.yml
+# Комплексное определение информации о дистрибутиве
+
+- name: Gather minimal OS facts
+  ansible.builtin.setup:
+    gather_subset:
+      - '!all'
+      - 'distribution'
+      - 'distribution_version'
+      - 'distribution_major_version'
+      - 'os_family'
+      - 'lsb'
+
+- name: Detect distribution details (Ubuntu/Debian/LinuxMint)
+  ansible.builtin.set_fact:
+    distro_name: "{{ ansible_distribution }}"
+    distro_version: "{{ ansible_distribution_version }}"
+    distro_major_version: "{{ ansible_distribution_major_version }}"
+    distro_release: "{{ ansible_distribution_release }}"
+    distro_codename: "{{ ansible_lsb.codename | default(ansible_distribution_release) }}"
+
+- name: Set detailed distribution info for Ubuntu
+  when: ansible_distribution == 'Ubuntu'
+  block:
+    - name: Set Ubuntu specific facts
+      ansible.builtin.set_fact:
+        distro_display: "Ubuntu {{ ansible_distribution_version }} ({{ ansible_distribution_release | capitalize }})"
+        distro_family: "Debian"
+        distro_base: "Ubuntu"
+        ubuntu_codename: "{{ ansible_distribution_release }}"
+        ubuntu_version: "{{ ansible_distribution_version }}"
+
+- name: Set detailed distribution info for Debian
+  when: ansible_distribution == 'Debian'
+  block:
+    - name: Set Debian specific facts
+      ansible.builtin.set_fact:
+        distro_display: "Debian {{ ansible_distribution_version }} ({{ ansible_distribution_release | capitalize }})"
+        distro_family: "Debian"
+        distro_base: "Debian"
+        debian_codename: "{{ ansible_distribution_release }}"
+        debian_version: "{{ ansible_distribution_version }}"
+
+- name: Set detailed distribution info for Linux Mint
+  when: ansible_distribution == 'LinuxMint'
+  block:
+    - name: Set Linux Mint specific facts
+      ansible.builtin.set_fact:
+        distro_display: "Linux Mint {{ ansible_distribution_version }} ({{ ansible_lsb.codename | capitalize }})"
+        distro_family: "Debian"
+        distro_base: "Ubuntu"
+        mint_codename: "{{ ansible_lsb.codename }}"
+        mint_version: "{{ ansible_distribution_version }}"
+        # Определяем базовую Ubuntu версию для Linux Mint
+        ubuntu_base_version: >-
+          {%- if ansible_distribution_version is version('22', '>=') and ansible_distribution_version is version('23', '<') -%}
+            22.04
+          {%- elif ansible_distribution_version is version('21', '>=') and ansible_distribution_version is version('22', '<') -%}
+            20.04
+          {%- else -%}
+            24.04
+          {%- endif -%}
+        ubuntu_base_codename: >-
+          {%- if ubuntu_base_version == '22.04' -%}jammy
+          {%- elif ubuntu_base_version == '20.04' -%}focal
+          {%- else -%}noble
+          {%- endif -%}
+
+- name: Display detected distribution info
+  ansible.builtin.debug:
+    msg:
+      - "Detected distribution: {{ distro_display }}"
+      - "Distribution family: {{ distro_family }}"
+      - "Base distribution: {{ distro_base }}"
+      - "Release codename: {{ distro_codename }}"
+      - "Version: {{ distro_version }}"
+  when: distro_display is defined
+  tags: always
+
+- name: Create distribution fact file for later use
+  ansible.builtin.copy:
+    content: |
+      ---
+      # Auto-generated distribution facts
+      distro_name: {{ distro_name }}
+      distro_version: {{ distro_version }}
+      distro_major_version: {{ distro_major_version }}
+      distro_release: {{ distro_release }}
+      distro_codename: {{ distro_codename }}
+      distro_display: {{ distro_display | default('Unknown') }}
+      distro_family: {{ distro_family }}
+      distro_base: {{ distro_base | default('Unknown') }}
+    dest: "/tmp/ansible_distro_facts_{{ ansible_date_time.epoch }}.yml"
+    mode: '0644'
+  when: distro_display is defined
+  changed_when: false

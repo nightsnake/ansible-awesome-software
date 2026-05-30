@@ -1,115 +1,29 @@
-### Install additional apt repos and keys
-- name: Install repos from URLs
-  apt_repository:
-    repo: "{{ item.repo }}"
-    filename: "{{ item.filename }}"
-    state: present
-    update_cache: false
-  with_items:
-    - "{{ default_awesome_repo_list }}"
-    - "{{ custom_awesome_repo_list }}"
-  
-  tags: awesome_repo
+---
+# tasks/main.yml
+- name: Detect distribution version and details
+  ansible.builtin.import_tasks: detect_distribution.yml
+  tags: always
 
-- name: Install repos from .deb
-  apt:
-    deb: "{{ item.deb }}"
-    state: present
-    install_recommends: false
-  with_items:
-    - "{{ default_awesome_repo_deb_list | default(omit) }}"
-    - "{{ custom_awesome_repo_deb_list | default(omit) }}"
-  ignore_errors: true
-  tags: awesome_repo
+- name: Include repository templates
+  ansible.builtin.include_vars:
+    file: repo_templates.yml
+    name: _repo_templates
 
-- name: Install PPA repos
-  apt_repository:
-    repo: "{{ item.repo }}"
-    codename: "{{ item.codename }}"
-    update_cache: false
-  with_items:
-    - "{{ default_awesome_ppa_list }}"
-    - "{{ custom_awesome_ppa_list }}"
-  tags: awesome_repo
+- name: Set default repo list based on OS facts
+  ansible.builtin.set_fact:
+    _default_awesome_repo_list: "{{ _repo_templates[ansible_distribution][ansible_distribution_version] | default(_repo_templates[ansible_distribution][ansible_distribution_major_version] | default([])) }}"
+  when: 
+    - ansible_distribution in _repo_templates
+    - ansible_distribution_version in _repo_templates[ansible_distribution] or ansible_distribution_major_version in _repo_templates[ansible_distribution]
 
-- name: Install repo keys
-  ansible.builtin.get_url:
-    url: "{{ item.url }}"
-#    state: present
-    dest: "{{ item.keyring }}"
-  with_items:
-    - "{{ default_awesome_apt_key_list }}"
-    - "{{ custom_awesome_apt_key_list }}"
-  tags: awesome_repo
+- name: Manage repositories
+  ansible.builtin.import_tasks: manage_repositories.yml
+  tags:
+    - awesome_repo
+    - repos
 
-- name: update apt cache
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: 3600
-  changed_when: false
-  check_mode: false
-  tags: awesome_repo
-
-- name: upgrade all packages
-  ansible.builtin.apt:
-    name: "*"
-    state: latest
-    install_recommends: false    
-  check_mode: false
-  when:
-   apt_upgrade
-  tags: awesome_repo
-
-- name: remove unnesessary packages
-  ansible.builtin.apt:
-    autoremove: true
-  check_mode: false
-  when:
-   apt_upgrade
-  tags: awesome_repo
-
-### Install packages by apt
-- name: "Package install: base package"
-  apt:
-    pkg: "{{ item }}"
-    install_recommends: false
-  with_items:
-    - "{{ default_awesome_package_list_base }}"
-    - "{{ custom_awesome_package_list_base }}"
-  tags: awesome_pkg_install
-
-- name: "Package install: system tools"
-  apt:
-    pkg: "{{ item }}"
-    install_recommends: false
-  with_items:
-    - "{{ default_awesome_package_list_system }}"
-    - "{{ custom_awesome_package_list_system }}"
-  tags: awesome_pkg_install
-
-- name: "Package install: desktop tools"
-  apt:
-    pkg: "{{ item }}"
-    install_recommends: false
-  with_items:
-    - "{{ default_awesome_package_list_desktop }}"
-    - "{{ custom_awesome_package_list_desktop }}"
-  tags: awesome_pkg_install
-
-- name: "Package install: network tools"
-  apt:
-    pkg: "{{ item }}"
-    install_recommends: false
-  with_items:
-    - "{{ default_awesome_package_list_network }}"
-    - "{{ custom_awesome_package_list_network }}"
-  tags: awesome_pkg_install
-
-- name: "Package install: multimedia tools"
-  apt:
-    pkg: "{{ item }}"
-    install_recommends: false
-  with_items:
-    - "{{ default_awesome_package_list_multimedia }}"
-    - "{{ custom_awesome_package_list_multimedia }}"
-  tags: awesome_pkg_install
+- name: Install packages (optimized)
+  ansible.builtin.import_tasks: install_packages.yml
+  tags:
+    - awesome_pkg_install
+    - packages

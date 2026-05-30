@@ -1,0 +1,111 @@
+---
+- name: Remove all existing repositories if flag is set
+  when: awesome_remove_all_repos | bool
+  block:
+    - name: Backup sources.list before removal
+      ansible.builtin.copy:
+        src: /etc/apt/sources.list
+        dest: /etc/apt/sources.list.backup.{{ ansible_date_time.epoch }}
+        remote_src: yes
+        backup: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Find all repository files
+      ansible.builtin.find:
+        paths:
+          - /etc/apt/sources.list.d/
+        patterns: "*.list,*.sources"
+        file_type: file
+      register: existing_repo_files
+
+    - name: Delete all repository files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ existing_repo_files.files }}"
+      when: existing_repo_files.files | length > 0
+
+    - name: Clear main sources.list
+      ansible.builtin.copy:
+        content: "# Managed by Ansible - original backup saved\n"
+        dest: /etc/apt/sources.list
+        force: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+- name: Install python3-apt for repository management
+  ansible.builtin.package:
+    name: python3-apt
+    state: present
+
+- name: Convert existing repositories to deb822 if requested
+  when: awesome_convert_to_deb822 | bool
+  block:
+    - name: Find all .list files for conversion
+      ansible.builtin.find:
+        paths:
+          - /etc/apt/sources.list.d/
+          - /etc/apt/
+        patterns: "*.list"
+        file_type: file
+      register: list_files
+
+    - name: Convert .list files to .sources format using apt-get
+      ansible.builtin.command:
+        cmd: >
+          apt-get indextargets --format deb822
+          --list-file {{ item.path }}
+          > {{ item.path | replace('.list', '.sources') }}
+        creates: "{{ item.path | replace('.list', '.sources') }}"
+      loop: "{{ list_files.files }}"
+      when:
+        - item.path != '/etc/apt/sources.list'
+        - not awesome_remove_all_repos | bool
+      changed_when: true
+
+    - name: Remove old .list files after conversion
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ list_files.files }}"
+      when:
+        - item.path != '/etc/apt/sources.list'
+        - not awesome_remove_all_repos | bool
+        - (item.path | replace('.list', '.sources')).stat.exists | default(false)
+
+# Используем новый deb822_repository модуль для deb822 формата (Ansible 2.25+)
+# или apt_repository для совместимости
+- name: Add repositories using appropriate module
+  when: (awesome_repo_list + custom_awesome_repo_list) | length > 0
+  block:
+    - name: Add repositories with deb822 format (using new module)
+      ansible.builtin.deb822_repository:
+        name: "awesome_repo_{{ loop_index }}"
+        types: "{{ item.type | default('deb') }}"
+        uris: "{{ item.uris if item.uris is defined else (item | regex_replace('^\\w+\\s+(.*?)\\s+\\S+\\s+\\S+$', '\\1')) }}"
+        suites: "{{ item.suites if item.suites is defined else (item | regex_replace('^\\w+\\s+\\S+\\s+(\\S+)\\s+\\S+$', '\\1')) }}"
+        components: "{{ item.components if item.components is defined else (item | regex_replace('^\\w+\\s+\\S+\\s+\\S+\\s+(.*)$', '\\1') | split(' ')) }}"
+        signed_by: "{{ item.signed_by | default(omit) }}"
+        architectures: "{{ item.architectures | default(omit) }}"
+        state: present
+      loop: "{{ awesome_repo_list + custom_awesome_repo_list | select('mapping') | list }}"
+      loop_control:
+        index_var: loop_index
+      when: 
+        - awesome_use_deb822 | bool
+        - item is mapping
+
+    - name: Add repositories (string format, may use apt_repository for compatibility)
+      ansible.builtin.apt_repository:
+        repo: "{{ item }}"
+        state: present
+        update_cache: no
+        codename: "{{ ansible_distribution_release if ansible_distribution == 'LinuxMint' else omit }}"
+      loop: "{{ awesome_repo_list + custom_awesome_repo_list | select('string') | list }}"
+      when:
+        - not (awesome_use_deb822 | bool) or item is string
+      notify: update apt cache for repos
+
+- name: Update apt cache after repository changes
+  ansible.builtin.apt:
+    update_cache: yes
+  changed_when: false

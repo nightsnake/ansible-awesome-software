@@ -1,70 +1,103 @@
-default_awesome_ppa_list: []
-default_awesome_repo_list: []
-default_awesome_apt_key_list: []
-default_awesome_repo_deb_list: []
-default_awesome_package_list_system:
- - python3                #
- - nano                  #easy-to-use editor
- - sudo                  #be like root!
- - unzip                 #for unzipping zips
- - tmux
- - apt-transport-https
- - software-properties-common
- - htop
+---
+# ============================================
+# Флаги управления репозиториями
+# ============================================
 
+# Удалить ВСЕ существующие репозитории перед добавлением новых
+awesome_remove_all_repos: false
+
+# Конвертировать существующие репозитории в формат deb822
+awesome_convert_to_deb822: false
+
+# Использовать deb822 для новых репозиториев
+awesome_use_deb822: false
+
+# ============================================
+# Обновление системы
+# ============================================
+
+# Обновить все пакеты (apt_upgrade)
+# Возможные значения: true, false, 'dist', 'full', 'safe'
+# true/'yes' — upgrade все пакеты
+# 'dist' — apt-get dist-upgrade
+# 'full' — apt-get full-upgrade (замена dist-upgrade в новых версиях)
+# 'safe' — безопасное обновление (только существующие пакеты)
+apt_upgrade: false
+
+# Автоматически удалять ненужные зависимости после обновления
+apt_autoremove: false
+
+# Время кэширования apt в секундах
+apt_cache_valid_time: 3600
+
+# ============================================
+# Списки пакетов для установки
+# ============================================
+
+# Базовые системные пакеты
 default_awesome_package_list_base: []
-default_awesome_package_list_network:
- - net-tools
- - ca-certificates
- - wget
- - openssh-server
- - curl
- - traceroute
- - mtr-tiny
- - tcpdump
- - whois
- - telnet
- - dnsutils
 
+# Пакеты для рабочего стола (Mate/Ubuntu/Debian)
 default_awesome_package_list_desktop: []
-default_awesome_pip_list: []
+
+# Системные утилиты
+default_awesome_package_list_system:
+  - python3
+  - nano
+  - sudo
+  - unzip
+  - tmux
+  - apt-transport-https
+  - software-properties-common
+  - htop
+
+# Мультимедиа пакеты
 default_awesome_package_list_multimedia: []
+# Сетевые утилиты и клиенты
+default_awesome_package_list_network:
+  - net-tools
+  - ca-certificates
+  - wget
+  - openssh-server
+  - curl
+  - traceroute
+  - mtr-tiny
+  - tcpdump
+  - whois
+  - telnet
+  - dnsutils
 
-custom_awesome_ppa_list: []
-#Caffeine screensaver suppressor
-# - repo: ppa:caffeine-developers/ppa
-#   codename: bionic
-#Deluge - torrent client
-# - repo: ppa:deluge-team/ppa
-#   codename: bionic
-#Indicator for Unity like in Gnome2
-# - repo: ppa:diesch/testing
-#   codename: "{{ awesome_dist_name }}"
-#gstreamer1.0
-# - repo: ppa:enlightenment-git/ppa
-#   codename: xenial
-#Fingerprint tools
-# - repo: ppa:fingerprint/fingerprint-gui
-#   codename: bionic
-# - repo: ppa:fingerprint/fprint
-   #codename: bionic
-#Recent Notifications is an indicator applet (indicator-notifications) that collects recent messages sent with libnotify to a notification daemon, such as notify-osd.
-# - repo: ppa:jconti/recent-notifications
-#   codename: bionic
-
-#GIMP
-# Broken for focal
-# - repo: ppa:otto-kesselgulasch/gimp
-#   codename: "{{ awesome_dist_name }}"
-
-custom_awesome_repo_list: []
-custom_awesome_apt_key_list: []
-custom_awesome_repo_deb_list: []
+# ============================================
+# Пользовательские списки (переопределяются в vars)
+# ============================================
 custom_awesome_package_list_base: []
-custom_awesome_package_list_system: []
 custom_awesome_package_list_desktop: []
+custom_awesome_package_list_system: []
 custom_awesome_package_list_multimedia: []
 custom_awesome_package_list_network: []
-custom_awesome_pip_list: []
 
-apt_upgrade: false
+# ============================================
+# Репозитории (примеры описания)
+# ============================================
+#
+# Пример 1: Обычный репозиторий
+#   - "deb http://archive.ubuntu.com/ubuntu jammy main restricted"
+#
+# Пример 2: PPA репозиторий (будет сконвертирован в deb822 при необходимости)
+#   - "ppa:nginx/stable"
+#
+# Пример 3: Репозиторий с указанием архитектуры и ключа (для deb822)
+#   - "deb [arch=amd64 signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+#
+# Пример 4: Репозиторий в формате deb822 (полное описание)
+#   - type: "deb"
+#     uris: "https://download.docker.com/linux/ubuntu"
+#     suites: "{{ ansible_distribution_release }}"
+#     components: ["stable"]
+#     signed_by: "/usr/share/keyrings/docker.gpg"
+#     architectures: ["amd64"]
+
+awesome_repo_list: "{{ _default_awesome_repo_list }}"
+
+# Список кастомных репозиториев пользователя
+custom_awesome_repo_list: []

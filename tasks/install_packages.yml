@@ -1,0 +1,73 @@
+---
+- name: Merge default and custom package lists
+  ansible.builtin.set_fact:
+    _final_package_list_base: "{{ default_awesome_package_list_base + custom_awesome_package_list_base }}"
+    _final_package_list_desktop: "{{ default_awesome_package_list_desktop + custom_awesome_package_list_desktop }}"
+    _final_package_list_system: "{{ default_awesome_package_list_system + custom_awesome_package_list_system }}"
+    _final_package_list_multimedia: "{{ default_awesome_package_list_multimedia + custom_awesome_package_list_multimedia }}"
+    _final_package_list_network: "{{ default_awesome_package_list_network + custom_awesome_package_list_network }}"
+
+- name: Update all packages if apt_upgrade is set
+  when: apt_upgrade | bool or apt_upgrade in ['dist', 'full', 'safe', 'yes', 'true']
+  block:
+    - name: Perform apt upgrade
+      ansible.builtin.apt:
+        upgrade: "{{ apt_upgrade if apt_upgrade in ['dist', 'full', 'safe'] else 'full' }}"
+        update_cache: yes
+        cache_valid_time: "{{ apt_cache_valid_time }}"
+        autoremove: "{{ apt_autoremove | bool }}"
+      register: upgrade_result
+
+    - name: Display upgrade results
+      ansible.builtin.debug:
+        msg: "System upgraded. Packages changed: {{ upgrade_result.changed }}"
+
+- name: Install base packages (single apt call)
+  ansible.builtin.apt:
+    name: "{{ _final_package_list_base }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+  when: _final_package_list_base | length > 0
+
+- name: Install system packages (single apt call)
+  ansible.builtin.apt:
+    name: "{{ _final_package_list_system }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+  when: _final_package_list_system | length > 0
+
+- name: Install desktop packages (single apt call)
+  ansible.builtin.apt:
+    name: "{{ _final_package_list_desktop }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+  when: _final_package_list_desktop | length > 0
+
+- name: Install multimedia packages (single apt call)
+  ansible.builtin.apt:
+    name: "{{ _final_package_list_multimedia }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+  when: _final_package_list_multimedia | length > 0
+
+- name: Install network packages (single apt call)
+  ansible.builtin.apt:
+    name: "{{ _final_package_list_network }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+  when: _final_package_list_network | length > 0
+
+# Дополнительный вызов для установки специфичных пакетов с опциями
+- name: Install packages with specific options
+  ansible.builtin.apt:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    update_cache: "{{ item.update_cache | default(false) }}"
+    install_recommends: "{{ item.install_recommends | default(true) }}"
+  loop: "{{ awesome_packages_with_options | default([]) }}"
+  when: awesome_packages_with_options is defined
