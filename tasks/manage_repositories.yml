@@ -115,53 +115,68 @@
 # Обработка пользовательских репозиториев
 # ============================================
 
-# Обработка legacy репозиториев (формат .list)
-# Репозиторий описывается словарём с полем 'repo'
-# Имя файла берётся из поля 'file'
 
-- name: Add legacy format repositories (.list files)
-  ansible.builtin.apt_repository:
-    repo: "{{ item.repo }}"
-    state: present
-    update_cache: false
-    filename: "{{ item.file }}"
-    codename: "{{ ansible_distribution_release if ansible_distribution == 'LinuxMint' else omit }}"
-  loop: "{{ custom_awesome_repo_list | selectattr('repo', 'defined') | list }}"
+- name: Process custom repositories
   when: custom_awesome_repo_list | length > 0
-  register: legacy_repo_result
-  failed_when: 
-    - legacy_repo_result.failed
-    - "'already exists' not in legacy_repo_result.msg | default('')"
-    - "'already added' not in legacy_repo_result.msg | default('')"
-    - "'ppa' not in legacy_repo_result.msg | default('') or 'already exists' not in legacy_repo_result.msg | default('')"
-  notify: update apt cache for repos
+  block:
+    # Обработка legacy репозиториев (формат .list)
+    # Репозиторий описывается словарём с полем 'repo'
+    # Имя файла берётся из поля 'file'  
+    - name: Add legacy format repositories (.list files)
+      ansible.builtin.apt_repository:
+        repo: "{{ item.repo }}"
+        state: present
+        update_cache: false
+        filename: "{{ item.file }}"
+        codename: "{{ ansible_distribution_release if ansible_distribution == 'LinuxMint' else omit }}"
+      loop: "{{ custom_awesome_repo_list | selectattr('repo', 'defined') | list }}"
+      register: legacy_repo_result
+      failed_when: 
+        - legacy_repo_result.failed
+        - "'already exists' not in legacy_repo_result.msg | default('')"
+        - "'already added' not in legacy_repo_result.msg | default('')"
+        - "'ppa' not in legacy_repo_result.msg | default('') or 'already exists' not in legacy_repo_result.msg | default('')"
+      notify: update apt cache for repos
 
-# Обработка deb822 репозиториев (формат .sources)
-# Репозиторий описывается словарём с полем 'name'
-# Имя файла берётся из поля 'name'
+    # Обработка deb822 репозиториев (формат .sources)
+    # Репозиторий описывается словарём с полем 'name'
+    # Имя файла берётся из поля 'name'
 
-- name: Add deb822 format repositories (.sources files)
-  ansible.builtin.deb822_repository:
-    name: "{{ item.name }}"
-    types: "{{ item.type | default('deb') }}"
-    uris: "{{ item.uris }}"
-    suites: "{{ item.suites }}"
-    components: "{{ item.components }}"
-    signed_by: "{{ item.signed_by | default(omit) }}"
-    architectures: "{{ item.architectures | default(omit) }}"
-    state: present
-  loop: "{{ custom_awesome_repo_list | selectattr('name', 'defined') | list }}"
-  when: custom_awesome_repo_list | length > 0
-  register: deb822_repo_result
-  failed_when: 
-    - deb822_repo_result.failed
-    - "'already exists' not in deb822_repo_result.msg | default('')"
-    - "'already added' not in deb822_repo_result.msg | default('')"
-  notify: update apt cache for repos
+    - name: Add deb822 format repositories (.sources files)
+      ansible.builtin.deb822_repository:
+        name: "{{ item.name }}"
+        types: "{{ item.type | default('deb') }}"
+        uris: "{{ item.uris }}"
+        suites: "{{ item.suites }}"
+        components: "{{ item.components }}"
+        signed_by: "{{ item.signed_by | default(omit) }}"
+        architectures: "{{ item.architectures | default(omit) }}"
+        state: present
+      loop: "{{ custom_awesome_repo_list | selectattr('name', 'defined') | list }}"
+      register: deb822_repo_result
+      failed_when: 
+        - deb822_repo_result.failed
+        - "'already exists' not in deb822_repo_result.msg | default('')"
+        - "'already added' not in deb822_repo_result.msg | default('')"
+      notify: update apt cache for repos
+
+    # DEB-пакет по ссылке (url)
+    - name: Install repository DEB package from URL
+      ansible.builtin.apt:
+        deb: "{{ item.url }}"
+        state: present
+      loop: "{{ custom_awesome_repo_list | selectattr('url', 'defined') | list }}"
+      register: deburl_repo_result
+      failed_when: 
+        - deburl_repo_result.failed
+        - "'already exists' not in deburl_repo_result.msg | default('')"
+        - "'already added' not in deburl_repo_result.msg | default('')"      
+      notify: update apt cache for repos
 
 - name: Update apt cache after repository changes
   ansible.builtin.apt:
     update_cache: true
+    cache_valid_time: 0
   register: update_cache_result
   failed_when: update_cache_result.failed
   changed_when: false

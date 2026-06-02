@@ -1,0 +1,25 @@
+---
+- name: Detect system virtualization type
+  ansible.builtin.set_fact:
+    system_virt_type: "{{ ansible_virtualization_type | default('unknown') }}"
+    system_virt_role: "{{ ansible_virtualization_role | default('guest') }}"
+
+- name: Display virtualization info in debug mode
+  ansible.builtin.debug:
+    msg:
+      - "Virtualization type: {{ system_virt_type }}"
+      - "Virtualization role: {{ system_virt_role }}"
+  when: awesome_debug | default(false)
+
+- name: Determine if system is virtual machine
+  ansible.builtin.set_fact:
+    is_virtual_machine: "{{ system_virt_type not in ['docker', 'lxc', 'lxd', 'containerd', 'podman', 'none', 'unknown'] and system_virt_role == 'guest' }}"
+
+- name: Determine if system is container
+  ansible.builtin.set_fact:
+    is_container: "{{ system_virt_type in ['docker', 'lxc', 'lxd', 'containerd', 'podman'] }}"
+
+- name: Display system type
+  ansible.builtin.debug:
+    msg: "System detected as: {{ 'Virtual Machine' if is_virtual_machine else 'Container' if is_container else 'Bare Metal' }}"
+  when: awesome_debug | default(false)

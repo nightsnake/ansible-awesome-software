@@ -5,6 +5,9 @@
   ansible.builtin.import_tasks: detect_distribution.yml
   tags: always
 
+- name: Detect system type (VM/container/bare metal)
+  ansible.builtin.include_tasks: detect_system_type.yml
+  
 - name: Include repository templates
   ansible.builtin.include_vars:
     file: repo_templates.yml
